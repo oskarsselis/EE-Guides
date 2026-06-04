@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git & GitHub — HTTPS Workflow Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d0f12;
+    --surface:   #13161b;
+    --surface2:  #1a1e25;
+    --border:    #252a34;
+    --border2:   #303642;
+    --text:      #e2e6ef;
+    --muted:     #7a8299;
+    --accent:    #4f8ef7;
+    --accent2:   #a78bfa;
+    --green:     #3ecf8e;
+    --amber:     #f59e0b;
+    --coral:     #f87171;
+    --teal:      #2dd4bf;
+    --tag-bg:    #1e2535;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* ── GRID NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 72px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .hero-eyebrow span {
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 56px;
+  }
+
+  .toc-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .toc ol {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 32px;
+  }
+
+  .toc a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.15s;
+  }
+
+  .toc a:hover { color: var(--accent); }
+
+  .toc-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 20px;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    margin-bottom: 64px;
+    scroll-margin-top: 24px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step-badge {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-badge.green  { background: var(--green);  color: #0d1a12; }
+  .step-badge.amber  { background: var(--amber);  color: #1a1200; }
+  .step-badge.purple { background: var(--accent2); color: #1a1030; }
+  .step-badge.teal   { background: var(--teal);   color: #0a1a18; }
+  .step-badge.coral  { background: var(--coral);  color: #1a0808; }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 28px 0 10px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  p { color: var(--muted); margin-bottom: 14px; }
+  p strong { color: var(--text); font-weight: 600; }
+
+  /* ── COMMAND BLOCKS ── */
+  .cmd-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+
+  .cmd-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cmd-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .copy-btn {
+    background: var(--tag-bg);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .copy-btn:hover { background: var(--border2); color: var(--text); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  .cmd-body {
+    padding: 16px 20px;
+  }
+
+  .cmd-body code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.9;
+    display: block;
+    white-space: pre;
+  }
+
+  .cmd-comment { color: #3d4a60; }
+  .cmd-dollar  { color: var(--muted); user-select: none; }
+  .cmd-main    { color: var(--accent); }
+  .cmd-arg     { color: var(--text); }
+  .cmd-string  { color: var(--green); }
+  .cmd-flag    { color: var(--accent2); }
+
+  /* ── OUTPUT BLOCKS ── */
+  .output-block {
+    background: #0a0c0f;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border2);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 12px 0 20px;
+  }
+
+  .output-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #3d4a60;
+    margin-bottom: 8px;
+  }
+
+  .output-block code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: #6a7a90;
+    line-height: 1.8;
+    display: block;
+    white-space: pre;
+  }
+
+  .out-hi  { color: var(--green); }
+  .out-dim { color: #3d4a60; }
+  .out-acc { color: var(--accent); }
+  .out-amb { color: var(--amber); }
+  .out-ast { color: var(--coral); }
+
+  /* ── INFO / NOTE BOXES ── */
+  .note {
+    background: var(--tag-bg);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .note strong { color: var(--accent); }
+  .note.warn { border-left-color: var(--amber); }
+  .note.warn strong { color: var(--amber); }
+  .note.tip { border-left-color: var(--green); }
+  .note.tip strong { color: var(--green); }
+
+  /* ── COMPARISON TABLE ── */
+  .compare {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13.5px;
+  }
+
+  .compare th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 16px;
+    text-align: left;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .compare td {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+  }
+
+  .compare td:first-child {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .compare tr:nth-child(even) td { background: var(--surface); }
+
+  /* ── QUICK REF ── */
+  .qref {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 56px;
+  }
+
+  .qref-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .qref-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .qref-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  .qref-cmd {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    min-width: 0;
+    flex: 1;
+  }
+
+  .qref-desc {
+    font-size: 12px;
+    color: var(--muted);
+    flex: 1.2;
+  }
+
+  .qref-copy {
+    background: none;
+    border: none;
+    color: var(--border2);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 4px;
+    transition: color 0.15s;
+    font-family: 'IBM Plex Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .qref-copy:hover { color: var(--accent); }
+  .qref-copy.copied { color: var(--green); }
+
+  /* ── FLOW DIAGRAM (CSS) ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 20px 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .flow-node {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .flow-node.coral  { border-color: var(--coral);  color: var(--coral); }
+  .flow-node.purple { border-color: var(--accent2); color: var(--accent2); }
+  .flow-node.teal   { border-color: var(--teal);   color: var(--teal); }
+  .flow-node.green  { border-color: var(--green);  color: var(--green); }
+
+  .flow-arrow {
+    color: var(--border2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    text-align: center;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+
+  @media (max-width: 600px) {
+    .toc ol { grid-template-columns: 1fr; }
+    .qref-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── HERO ── -->
+  <header class="hero">
+    <div class="hero-eyebrow"><span></span>Reference Guide<span></span></div>
+    <h1>Git &amp; <em>GitHub</em><br>HTTPS Workflow</h1>
+    <p class="hero-sub">A practical guide to contributing to open-source projects using HTTPS — from forking to pull request, with exact commands, expected outputs, and explanations at each step. Uses Betaflight as the example project.</p>
+  </header>
+
+  <!-- ── FLOW OVERVIEW ── -->
+  <div class="flow">
+    <div class="flow-node coral">upstream repo</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node purple">fork (GitHub)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node teal">local clone</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node teal">feature branch</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node teal">commit</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node purple">push → fork</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node green">pull request</div>
+  </div>
+
+  <!-- ── TOC ── -->
+  <nav class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#s0"><span class="toc-num">00</span>WSL setup (Windows only)</a></li>
+      <li><a href="#s1"><span class="toc-num">01</span>Install &amp; configure Git</a></li>
+      <li><a href="#s2"><span class="toc-num">02</span>Fork the repository</a></li>
+      <li><a href="#s3"><span class="toc-num">03</span>Clone your fork</a></li>
+      <li><a href="#s4"><span class="toc-num">04</span>Add the upstream remote</a></li>
+      <li><a href="#s5"><span class="toc-num">05</span>Create a feature branch</a></li>
+      <li><a href="#s6"><span class="toc-num">06</span>Edit, stage &amp; commit</a></li>
+      <li><a href="#s7"><span class="toc-num">07</span>Push to your fork</a></li>
+      <li><a href="#s8"><span class="toc-num">08</span>Open a pull request</a></li>
+      <li><a href="#s9"><span class="toc-num">09</span>Sync with upstream</a></li>
+      <li><a href="#s10"><span class="toc-num">10</span>Quick reference</a></li>
+    </ol>
+  </nav>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- STEP 0 — WSL -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s0">
+    <div class="section-header">
+      <div class="step-badge amber">00</div>
+      <h2>WSL setup <span style="font-size:14px;font-weight:400;color:var(--muted)">(Windows only)</span></h2>
+    </div>
+
+    <p>WSL — <strong>Windows Subsystem for Linux</strong> — lets you run a real Linux environment directly inside Windows, without a virtual machine. For firmware projects like Betaflight, which rely on Linux-native build tools, WSL is the recommended way to work on Windows. All subsequent steps in this guide are run inside WSL.</p>
+
+    <div class="note">
+      <strong>Requirement:</strong> Windows 10 version 2004 or later, or Windows 11. Run all commands below in <strong>PowerShell</strong> or <strong>Command Prompt</strong> opened as Administrator.
+    </div>
+
+    <h3>Install WSL with Ubuntu</h3>
+    <p>A single command installs WSL and the default Ubuntu distribution in one step.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">PowerShell — run as administrator</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'wsl --install')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">PS> </span><span class="cmd-main">wsl</span> <span class="cmd-flag">--install</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">Installing: Virtual Machine Platform</span>
+<span class="out-dim">Virtual Machine Platform has been installed.</span>
+<span class="out-dim">Installing: Windows Subsystem for Linux</span>
+<span class="out-dim">Windows Subsystem for Linux has been installed.</span>
+<span class="out-dim">Installing: Ubuntu</span>
+<span class="out-hi">Ubuntu has been installed.</span>
+<span class="out-dim">The requested operation is successful.</span>
+<span class="out-amb">Please restart your machine to complete the installation.</span></code>
+    </div>
+
+    <p><strong>Restart your computer</strong> after this completes. When Windows boots back up, an Ubuntu terminal window will open automatically and finish setup — you'll be asked to create a Linux username and password. These are separate from your Windows credentials.</p>
+
+    <div class="note warn">
+      <strong>Note:</strong> The Linux password you set here is used whenever you run <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">sudo</code> commands inside WSL. Choose something you'll remember — it does not need to match your Windows password.
+    </div>
+
+    <h3>Check WSL status</h3>
+    <p>After restarting, open PowerShell and verify WSL is running correctly and shows your Ubuntu instance.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">PowerShell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'wsl --status')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">PS> </span><span class="cmd-main">wsl</span> <span class="cmd-flag">--status</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">Default Distribution: Ubuntu</span>
+<span class="out-hi">Default Version: 2</span>
+<span class="out-dim">Windows Subsystem for Linux was last updated on ...</span>
+<span class="out-dim">The Windows Subsystem for Linux kernel can be manually updated ...</span></code>
+    </div>
+
+    <p>Confirm that <strong>Default Version: 2</strong> is shown. WSL 2 uses a real Linux kernel and is significantly faster than WSL 1 for build-heavy projects like Betaflight.</p>
+
+    <h3>Check WSL version and list installed distributions</h3>
+    <p>This shows every installed Linux distribution and confirms which version of WSL each one is running on.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">PowerShell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'wsl --list --verbose')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">PS> </span><span class="cmd-main">wsl</span> <span class="cmd-flag">--list</span> <span class="cmd-flag">--verbose</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">  NAME      STATE           VERSION</span>
+<span class="out-hi">* Ubuntu    Running         2</span></code>
+    </div>
+
+    <p>The <strong>*</strong> marks the default distribution. <strong>VERSION 2</strong> confirms WSL 2 is active. If you see VERSION 1, upgrade it with <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:12px">wsl --set-version Ubuntu 2</code>.</p>
+
+    <h3>Update and upgrade Ubuntu packages</h3>
+    <p>Open the <strong>Ubuntu</strong> app from the Start menu (or type <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:12px">wsl</code> in PowerShell to enter it). Run both commands every time you set up a fresh Ubuntu instance — this ensures all system packages are current before you install anything else.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">Ubuntu (WSL terminal)</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'sudo apt update\nsudo apt upgrade -y')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">sudo apt update</span>
+<span class="cmd-dollar">$ </span><span class="cmd-main">sudo apt upgrade</span> <span class="cmd-flag">-y</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output (apt update)</div>
+      <code><span class="out-dim">Hit:1 http://archive.ubuntu.com/ubuntu jammy InRelease</span>
+<span class="out-dim">Get:2 http://archive.ubuntu.com/ubuntu jammy-updates InRelease [128 kB]</span>
+<span class="out-dim">Fetched 3,241 kB in 4s (810 kB/s)</span>
+<span class="out-hi">Reading package lists... Done</span>
+<span class="out-hi">Building dependency tree... Done</span></code>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output (apt upgrade)</div>
+      <code><span class="out-dim">Reading package lists... Done</span>
+<span class="out-dim">Building dependency tree... Done</span>
+<span class="out-dim">Calculating upgrade... Done</span>
+<span class="out-hi">0 upgraded, 0 newly installed, 0 to remove and 0 not changed.</span>
+<span class="out-dim">(or: N upgraded, N newly installed ...)</span></code>
+    </div>
+
+    <p><strong>apt update</strong> refreshes the list of available packages and their versions — it does not install anything. <strong>apt upgrade -y</strong> then downloads and installs any newer versions of packages already on your system. The <strong>-y</strong> flag automatically answers "yes" to all prompts so the upgrade runs unattended.</p>
+
+    <div class="note tip">
+      <strong>From here on:</strong> All terminal commands in this guide are run inside the Ubuntu WSL terminal, not in PowerShell. Open the Ubuntu app from your Start menu or type <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">wsl</code> in any PowerShell window to enter it.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- STEP 1 -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <div class="step-badge">01</div>
+      <h2>Install &amp; configure Git</h2>
+    </div>
+
+    <p>Git is the version control tool that runs <strong>on your computer</strong>. GitHub is the website that hosts repositories. They are separate things — Git works without GitHub, but you need Git installed to use GitHub from the command line.</p>
+
+    <h3>Install</h3>
+    <p><strong>Windows</strong> — download the installer from <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">git-scm.com</code> and run it with default options.<br>
+    <strong>macOS</strong> — run <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">xcode-select --install</code> in Terminal. Git is bundled with Xcode tools.<br>
+    <strong>Linux (Debian/Ubuntu)</strong> — use your package manager:</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'sudo apt install git')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">sudo apt install</span> <span class="cmd-arg">git</span></code></div>
+    </div>
+
+    <h3>Verify installation</h3>
+    <p>Check that Git is available and see its version number.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git --version')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git</span> <span class="cmd-flag">--version</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">git version 2.44.0</span></code>
+    </div>
+    <p>Any version above <strong>2.30</strong> is fine. If you see <em>command not found</em>, the install did not complete — try again.</p>
+
+    <h3>Set your identity</h3>
+    <p>Git attaches your name and email to every commit. This must match your GitHub account so your contributions are linked to your profile.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git config --global user.name &quot;Your Name&quot;\ngit config --global user.email &quot;you@example.com&quot;')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git config</span> <span class="cmd-flag">--global</span> <span class="cmd-arg">user.name</span>  <span class="cmd-string">"Your Name"</span>
+<span class="cmd-dollar">$ </span><span class="cmd-main">git config</span> <span class="cmd-flag">--global</span> <span class="cmd-arg">user.email</span> <span class="cmd-string">"<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="740d1b0134110c15190418115a171b19">[email&#160;protected]</a>"</span></code></div>
+    </div>
+
+    <p><strong>--global</strong> means this setting applies to every repository on your machine. You can override it per-project with <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">--local</code> inside a specific repo folder.</p>
+
+    <h3>Verify your config</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git config --list')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git config</span> <span class="cmd-flag">--list</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output (excerpt)</div>
+      <code><span class="out-dim">core.editor=vim</span>
+<span class="out-hi">user.name=Your Name</span>
+<span class="out-hi"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="73060016015d161e121a1f4e0a1c0633160b121e031f165d101c1e">[email&#160;protected]</a></span>
+<span class="out-dim">core.autocrlf=input</span></code>
+    </div>
+    <p>Confirm <strong>user.name</strong> and <strong>user.email</strong> appear with the values you set.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- STEP 2 -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <div class="step-badge green">02</div>
+      <h2>Fork the repository</h2>
+    </div>
+
+    <p>A <strong>fork</strong> is your own personal copy of someone else's repository, stored on GitHub under your account. You cannot push changes directly to <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">betaflight/betaflight</code> — you don't have write permission. A fork gives you a repository that you fully own.</p>
+
+    <p>This step is done entirely in the browser — no terminal needed:</p>
+
+    <ol style="color:var(--muted);padding-left:24px;margin-bottom:16px;line-height:2">
+      <li>Go to <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">github.com/betaflight/betaflight</code></li>
+      <li>Click the <strong style="color:var(--text)">Fork</strong> button in the top-right corner</li>
+      <li>Select your own GitHub account as the destination</li>
+      <li>Click <strong style="color:var(--text)">Create fork</strong></li>
+    </ol>
+
+    <p>You now have <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">github.com/YOUR_USERNAME/betaflight</code> — this is fully yours. All your work will go here first before you propose it to the official project.</p>
+
+    <div class="note tip">
+      <strong>Tip:</strong> The fork stays permanently linked to the original repo. GitHub shows "forked from betaflight/betaflight" on your fork's page, and this link is what enables pull requests later.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- STEP 3 -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <div class="step-badge purple">03</div>
+      <h2>Clone your fork</h2>
+    </div>
+
+    <p><strong>Cloning</strong> downloads the entire repository — all files and the full commit history — to your computer. You clone your <em>fork</em>, not the official repo, so you have write access.</p>
+
+    <h3>Navigate to your home directory first</h3>
+    <p>Always clone into your home directory rather than a random location. This keeps all your projects in a predictable, consistent place and avoids permission issues — especially important inside WSL where the Linux home directory (<code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">~</code>) is separate from your Windows files.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'cd ~\npwd')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">cd</span> <span class="cmd-arg">~</span>
+<span class="cmd-dollar">$ </span><span class="cmd-main">pwd</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">/home/your_username</span></code>
+    </div>
+
+    <p><strong>cd ~</strong> takes you to your Linux home directory regardless of where you currently are. <strong>pwd</strong> (print working directory) confirms the exact path — use this any time you want to know where you are in the filesystem.</p>
+
+    <h3>Clone the repository</h3>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git clone --recursive https://github.com/YOUR_USERNAME/betaflight.git\ncd betaflight')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git clone</span> <span class="cmd-flag">--recursive</span> <span class="cmd-string">https://github.com/YOUR_USERNAME/betaflight.git</span>
+<span class="cmd-dollar">$ </span><span class="cmd-main">cd</span> <span class="cmd-arg">betaflight</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">Cloning into 'betaflight'...</span>
+<span class="out-dim">remote: Enumerating objects: 84321, done.</span>
+<span class="out-dim">remote: Counting objects: 100% (84321/84321), done.</span>
+<span class="out-dim">Receiving objects: 100% (84321/84321), 68.42 MiB | 4.2 MiB/s, done.</span>
+<span class="out-dim">Resolving deltas: 100% (62148/62148), done.</span>
+<span class="out-dim">Submodule 'lib/main/STM32F4' (https://github.com/betaflight/STM32F4.git) registered</span>
+<span class="out-dim">Cloning into '/home/your_username/betaflight/lib/main/STM32F4'...</span>
+<span class="out-hi">Submodule path 'lib/main/STM32F4': checked out 'a7df4b...'</span></code>
+    </div>
+
+    <p><strong>git clone &lt;url&gt;</strong> creates a new folder named after the repo and downloads everything into it. The <strong>--recursive</strong> flag also initialises and downloads any <em>submodules</em> — these are separate Git repositories that the main project depends on, referenced at a specific commit. Betaflight uses submodules for hardware libraries (e.g. STM32 peripheral drivers). Without <strong>--recursive</strong> those folders would be empty and the build would fail.</p>
+
+    <p><strong>cd betaflight</strong> moves your terminal into the cloned folder. All future Git commands must be run from inside a repository folder.</p>
+
+    <div class="note warn">
+      <strong>Forgot --recursive?</strong> If you already cloned without the flag, you can recover the missing submodules at any time. See <a href="#s9" style="color:var(--amber)">Step 9 — submodule update</a> for the full command and expected output.
+    </div>
+
+    <h3>Verify the remote</h3>
+    <p>Check which remote servers Git knows about after cloning.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git remote -v')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git remote</span> <span class="cmd-flag">-v</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">origin</span>  https://github.com/YOUR_USERNAME/betaflight.git <span class="out-dim">(fetch)</span>
+<span class="out-hi">origin</span>  https://github.com/YOUR_USERNAME/betaflight.git <span class="out-dim">(push)</span></code>
+    </div>
+
+    <p><strong>origin</strong> is the default name Git assigns to the remote you cloned from. At this point, only your fork is registered — the official Betaflight repo is not yet connected.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- STEP 4 -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <div class="step-badge teal">04</div>
+      <h2>Add the upstream remote</h2>
+    </div>
+
+    <p>You need a connection to the <strong>official</strong> Betaflight repository so you can pull in future updates. By convention, this remote is called <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">upstream</code>.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git remote add upstream https://github.com/betaflight/betaflight.git')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git remote add</span> <span class="cmd-arg">upstream</span> <span class="cmd-string">https://github.com/betaflight/betaflight.git</span></code></div>
+    </div>
+
+    <h3>Verify both remotes</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git remote -v')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git remote</span> <span class="cmd-flag">-v</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">origin</span>    https://github.com/YOUR_USERNAME/betaflight.git <span class="out-dim">(fetch)</span>
+<span class="out-hi">origin</span>    https://github.com/YOUR_USERNAME/betaflight.git <span class="out-dim">(push)</span>
+<span class="out-acc">upstream</span>  https://github.com/betaflight/betaflight.git   <span class="out-dim">(fetch)</span>
+<span class="out-acc">upstream</span>  https://github.com/betaflight/betaflight.git   <span class="out-dim">(push)</span></code>
+    </div>
+
+    <table class="compare">
+      <tr>
+        <th>Remote</th>
+        <th>Points to</th>
+        <th>You can push to it?</th>
+        <th>Used for</th>
+      </tr>
+      <tr>
+        <td>origin</td>
+        <td>your fork on GitHub</td>
+        <td style="color:var(--green)">Yes</td>
+        <td style="color:var(--muted)">Pushing your branches and PRs</td>
+      </tr>
+      <tr>
+        <td>upstream</td>
+        <td>official betaflight repo</td>
+        <td style="color:var(--coral)">No</td>
+        <td style="color:var(--muted)">Fetching official updates</td>
+      </tr>
+    </table>
+
+    <h3>Find the default branch name</h3>
+    <p>Different projects use different names for their main branch (<code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">master</code>, <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">main</code>, <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">develop</code>, etc.). Betaflight uses <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">master</code>. Always verify before assuming.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git branch -r')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git branch</span> <span class="cmd-flag">-r</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">  origin/HEAD -> origin/master</span>
+<span class="out-hi">  origin/master</span>
+<span class="out-acc">  upstream/master</span></code>
+    </div>
+    <p>The <strong>-r</strong> flag lists remote-tracking branches. The line <code style="color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px">origin/HEAD -> origin/master</code> tells you the default branch is <strong>master</strong>.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- STEP 5 -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <div class="step-badge coral">05</div>
+      <h2>Create a feature branch</h2>
+    </div>
+
+    <p>Never make changes directly on <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">master</code>. A branch is an isolated copy of the codebase where your changes live. If something goes wrong, the rest of your code is untouched.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git checkout -b fpvfc_h753_2025.12.2')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git checkout</span> <span class="cmd-flag">-b</span> <span class="cmd-arg">fpvfc_h753_2025.12.2</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">Switched to a new branch 'fpvfc_h753_2025.12.2'</span></code>
+    </div>
+
+    <p><strong>git checkout -b &lt;name&gt;</strong> creates a new branch and switches to it in one step. Without the <strong>-b</strong> flag, <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">checkout</code> just switches to an existing branch — the flag is what creates it.</p>
+
+    <p>Use a short descriptive name. Common prefixes:</p>
+    <ul style="color:var(--muted);padding-left:24px;line-height:2">
+      <li><code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">fix/</code> — bug fixes</li>
+      <li><code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">feature/</code> — new functionality</li>
+      <li><code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">docs/</code> — documentation changes</li>
+    </ul>
+
+    <h3>Verify you're on the new branch</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git branch')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git branch</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-ast">* fpvfc_h753_2025.12.2</span>
+<span class="out-dim">  master</span></code>
+    </div>
+    <p>The <strong>*</strong> marks your currently active branch. This confirms you are working in isolation from master.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- STEP 6 -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <div class="step-badge">06</div>
+      <h2>Edit, stage &amp; commit</h2>
+    </div>
+
+    <p>After you edit files in your editor, Git tracks what changed but won't save it permanently until you create a <strong>commit</strong>. This is a two-step process: first <em>stage</em> the files you want to include, then <em>commit</em> them.</p>
+
+    <h3>Check what changed</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git status')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git status</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">On branch fpvfc_h753_2025.12.2</span>
+<span class="out-dim">Changes not staged for commit:</span>
+<span class="out-ast">  modified:   src/main/flight/mixer.c</span>
+<span class="out-dim">Untracked files:</span>
+<span class="out-ast">  src/main/flight/mixer_test.c</span></code>
+    </div>
+
+    <h3>Stage your changes</h3>
+    <p>Staging is a preparatory step — you're telling Git "include this in the next commit." You have not committed anything yet.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal — stage a specific file</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git add src/main/flight/mixer.c')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git add</span> <span class="cmd-arg">src/main/flight/mixer.c</span></code></div>
+    </div>
+
+    <div class="note warn">
+      <strong>Caution:</strong> <code style="font-family:'IBM Plex Mono',monospace;font-size:13px">git add .</code> stages <em>every</em> changed file at once. Be careful — you may accidentally include files you didn't intend to commit, such as local config files or build outputs.
+    </div>
+
+    <h3>Commit with a message</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git commit -m &quot;fix: correct motor output scaling in mixer&quot;')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git commit</span> <span class="cmd-flag">-m</span> <span class="cmd-string">"fix: correct motor output scaling in mixer"</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">[fpvfc_h753_2025.12.2 </span><span class="out-acc">a3f9c12</span><span class="out-dim">] fix: correct motor output scaling in mixer</span>
+<span class="out-dim"> 1 file changed, 8 insertions(+), 3 deletions(-)</span></code>
+    </div>
+
+    <p>The short hash (e.g. <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">a3f9c12</code>) is Git's unique ID for this commit. The <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">fix:</code> prefix follows the Conventional Commits convention — many projects including Betaflight encourage this format.</p>
+
+    <h3>Verify the commit was saved</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git log --oneline -5')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git log</span> <span class="cmd-flag">--oneline</span> <span class="cmd-flag">-5</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">a3f9c12</span> fix: correct motor output scaling in mixer
+<span class="out-dim">8e201bd feat: add blackbox logging for gyro</span>
+<span class="out-dim">d14a990 refactor: clean up PID loop timing</span>
+<span class="out-dim">c32f881 fix: resolve OSD font rendering glitch</span>
+<span class="out-dim">b90e112 docs: update build instructions for macOS</span></code>
+    </div>
+    <p>Your commit appears at the top of the log with its hash and message.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- STEP 7 -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <div class="step-badge purple">07</div>
+      <h2>Push to your fork</h2>
+    </div>
+
+    <p>Your commit currently exists only on your local machine. Pushing sends it to your fork on GitHub, making it available online and enabling you to open a pull request.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git push origin fpvfc_h753_2025.12.2')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git push</span> <span class="cmd-arg">origin</span> <span class="cmd-arg">fpvfc_h753_2025.12.2</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">Enumerating objects: 7, done.</span>
+<span class="out-dim">Counting objects: 100% (7/7), done.</span>
+<span class="out-dim">Delta compression using up to 8 threads</span>
+<span class="out-dim">Compressing objects: 100% (4/4), done.</span>
+<span class="out-dim">Writing objects: 100% (4/4), 1.12 KiB | 1.12 MiB/s, done.</span>
+<span class="out-hi">To https://github.com/YOUR_USERNAME/betaflight.git</span>
+<span class="out-hi"> * [new branch]      fpvfc_h753_2025.12.2 -> fpvfc_h753_2025.12.2</span></code>
+    </div>
+
+    <p>Breaking down the command: <strong>push</strong> uploads commits, <strong>origin</strong> is the remote to push to (your fork), and <strong>fpvfc_h753_2025.12.2</strong> is the branch name to create or update on the remote.</p>
+
+    <div class="note tip">
+      <strong>Verify:</strong> Go to <code style="font-family:'IBM Plex Mono',monospace;font-size:13px">github.com/YOUR_USERNAME/betaflight</code> in your browser. You'll see a yellow banner saying "fpvfc_h753_2025.12.2 had recent pushes" with a button to compare and open a pull request.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- STEP 8 -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <div class="step-badge green">08</div>
+      <h2>Open a pull request</h2>
+    </div>
+
+    <p>A <strong>Pull Request (PR)</strong> is a formal proposal asking the Betaflight maintainers to review and merge your changes into their repository. This step is done in the browser.</p>
+
+    <ol style="color:var(--muted);padding-left:24px;line-height:2.2">
+      <li>Click <strong style="color:var(--text)">Compare &amp; pull request</strong> from the yellow banner on your fork, or go to the <strong style="color:var(--text)">Pull Requests</strong> tab and click <strong style="color:var(--text)">New pull request</strong></li>
+      <li>Set the <strong style="color:var(--text)">base</strong> to <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">betaflight/betaflight : master</code></li>
+      <li>Set the <strong style="color:var(--text)">compare</strong> to your branch <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">YOUR_USERNAME/betaflight : fpvfc_h753_2025.12.2</code></li>
+      <li>Write a clear title: <code style="color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:13px">fix: correct motor output scaling in mixer</code></li>
+      <li>In the description, explain <em>what</em> changed, <em>why</em> it was needed, and <em>how you tested it</em></li>
+      <li>Click <strong style="color:var(--text)">Create pull request</strong></li>
+    </ol>
+
+    <div class="note">
+      <strong>What happens next:</strong> Maintainers will review your code. They may request changes — you can push additional commits to the same branch and the PR updates automatically. Eventually it will either be merged or closed with feedback.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- STEP 9 -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s9">
+    <div class="section-header">
+      <div class="step-badge teal">09</div>
+      <h2>Sync with upstream</h2>
+    </div>
+
+    <p>While you work, the official Betaflight repo keeps moving. You should regularly sync your local <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">master</code> and your fork to stay current. There are <strong>three separate locations</strong> involved — each command touches a specific pair of them.</p>
+
+    <table class="compare" style="margin-bottom:24px">
+      <tr>
+        <th>Location</th>
+        <th>What it is</th>
+        <th>Touched by</th>
+      </tr>
+      <tr>
+        <td>upstream/master</td>
+        <td style="color:var(--muted)">Official betaflight repo on GitHub</td>
+        <td style="color:var(--muted)">git fetch upstream</td>
+      </tr>
+      <tr>
+        <td>local master</td>
+        <td style="color:var(--muted)">Your machine's master branch</td>
+        <td style="color:var(--muted)">git rebase upstream/master</td>
+      </tr>
+      <tr>
+        <td>origin/master</td>
+        <td style="color:var(--muted)">Your fork on GitHub</td>
+        <td style="color:var(--muted)">git push origin master</td>
+      </tr>
+      <tr>
+        <td>feature branch</td>
+        <td style="color:var(--muted)">Your work branch</td>
+        <td style="color:var(--coral)">Not touched by sync steps</td>
+      </tr>
+    </table>
+
+    <h3>Step 9a — fetch from upstream</h3>
+    <p>Downloads the latest commits from the official repo to a hidden local reference called <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">upstream/master</code>. This is the safest command in Git — <strong>nothing on disk changes</strong>, no files are modified, no branches move. It only makes your computer aware of what exists upstream.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git fetch upstream')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git fetch</span> <span class="cmd-arg">upstream</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output (if updates exist)</div>
+      <code><span class="out-dim">remote: Enumerating objects: 48, done.</span>
+<span class="out-dim">remote: Counting objects: 100% (48/48), done.</span>
+<span class="out-hi">From https://github.com/betaflight/betaflight</span>
+<span class="out-hi">   8e201bd..f32c918  master -> upstream/master</span></code>
+    </div>
+
+    <p>The line <code style="color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:12px">8e201bd..f32c918  master -> upstream/master</code> tells you new commits arrived. If there's no output, you're already up to date.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal — verify: see upstream's latest commits</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git log upstream/master --oneline -5')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git log</span> <span class="cmd-arg">upstream/master</span> <span class="cmd-flag">--oneline</span> <span class="cmd-flag">-5</span></code></div>
+    </div>
+
+    <h3>Fetching tags from upstream</h3>
+    <p>A regular <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">git fetch upstream</code> downloads commits and branch pointers but does <strong>not</strong> automatically download tags. Tags are used by projects like Betaflight to mark release versions (e.g. <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">4.4.3</code>, <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">4.5.0</code>). Use the <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">--tags</code> flag to fetch them explicitly.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git fetch upstream --tags')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git fetch</span> <span class="cmd-arg">upstream</span> <span class="cmd-flag">--tags</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output (if new tags exist)</div>
+      <code><span class="out-dim">From https://github.com/betaflight/betaflight</span>
+<span class="out-hi"> * [new tag]         4.5.0      -> 4.5.0</span>
+<span class="out-hi"> * [new tag]         4.5.1      -> 4.5.1</span></code>
+    </div>
+
+    <p>Once fetched, list all tags in the repo to see available release versions:</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git tag -l')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git tag</span> <span class="cmd-flag">-l</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">4.3.0</span>
+<span class="out-dim">4.3.1</span>
+<span class="out-dim">4.4.0</span>
+<span class="out-hi">4.5.0</span>
+<span class="out-hi">4.5.1</span></code>
+    </div>
+
+    <p><strong>-l</strong> lists all tags alphabetically. You can filter with a pattern, for example <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">git tag -l "4.5.*"</code> lists only 4.5.x releases. Tags are useful for checking out the exact state of the code at a specific release: <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">git checkout 4.5.0</code>.</p>
+
+    <h3>Step 9b — switch to master and rebase</h3>
+    <p>You must be on your local <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">master</code> branch before rebasing it — otherwise you'd rebase your feature branch by mistake. Rebase replays your local master on top of the new upstream commits. In practice, since you haven't committed directly to master yourself, this simply moves the master pointer forward.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git checkout master\ngit rebase upstream/master')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git checkout</span> <span class="cmd-arg">master</span>
+<span class="cmd-dollar">$ </span><span class="cmd-main">git rebase</span> <span class="cmd-arg">upstream/master</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">Switched to branch 'master'</span>
+<span class="out-dim">Your branch is behind 'origin/master' by 12 commits, and can be fast-forwarded.</span>
+<span class="out-hi">Successfully rebased and updated refs/heads/master.</span></code>
+    </div>
+
+    <table class="compare">
+      <tr>
+        <th>Command</th>
+        <th>What it does</th>
+        <th>Creates a merge commit?</th>
+      </tr>
+      <tr>
+        <td>git rebase upstream/master</td>
+        <td style="color:var(--muted)">Replays commits on top of the new base. Linear history.</td>
+        <td style="color:var(--green)">No — clean history</td>
+      </tr>
+      <tr>
+        <td>git merge upstream/master</td>
+        <td style="color:var(--muted)">Joins histories with a merge commit.</td>
+        <td style="color:var(--amber)">Yes — extra commit</td>
+      </tr>
+    </table>
+    <p>Most open-source projects, including Betaflight, prefer rebase for keeping forks in sync because it produces cleaner, linear history.</p>
+
+    <h3>Step 9c — push updated master to your fork</h3>
+    <p>At this point, your local master is synced but your fork on GitHub is still outdated. This is the only command in the sequence that reaches the internet and modifies your fork.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git push origin master')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git push</span> <span class="cmd-arg">origin</span> <span class="cmd-arg">master</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">To https://github.com/YOUR_USERNAME/betaflight.git</span>
+<span class="out-hi">   8e201bd..f32c918  master -> master</span></code>
+    </div>
+
+    <h3>Optional — rebase your feature branch onto the synced master</h3>
+    <p>Do this before opening a PR. It brings the new upstream changes into your feature branch so your work is based on the latest code, making it much easier for maintainers to review and merge.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git checkout fpvfc_h753_2025.12.2\ngit rebase master')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git checkout</span> <span class="cmd-arg">fpvfc_h753_2025.12.2</span>
+<span class="cmd-dollar">$ </span><span class="cmd-main">git rebase</span> <span class="cmd-arg">master</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">Switched to branch 'fpvfc_h753_2025.12.2'</span>
+<span class="out-hi">Successfully rebased and updated refs/heads/fpvfc_h753_2025.12.2.</span></code>
+    </div>
+
+    <div class="note warn">
+      <strong>Conflict?</strong> If the same lines were changed both upstream and in your branch, Git will pause and ask you to resolve the conflict manually. Open the affected file, find the conflict markers (<code style="font-family:'IBM Plex Mono',monospace;font-size:12px">&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> / <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">=======</code> / <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>), edit the file to the correct state, then run <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">git add &lt;file&gt;</code> and <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">git rebase --continue</code>.
+    </div>
+
+    <h3>Step 9d — update submodules after syncing</h3>
+    <p>After rebasing onto a newer upstream, the submodule pointers in the repo may have changed — the official Betaflight master may now reference a newer commit of an STM32 library than you had locally. Running <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">git submodule update</code> brings every submodule in sync with what the current branch expects. This is also the recovery command if you originally cloned without <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">--recursive</code>.</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'git submodule update --init --recursive')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">git submodule update</span> <span class="cmd-flag">--init</span> <span class="cmd-flag">--recursive</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">Submodule 'lib/main/STM32F4' (https://github.com/betaflight/STM32F4.git) registered</span>
+<span class="out-dim">Cloning into '/home/your_username/betaflight/lib/main/STM32F4'...</span>
+<span class="out-hi">Submodule path 'lib/main/STM32F4': checked out 'a7df4b...'</span></code>
+    </div>
+
+    <p><strong>--init</strong> registers any submodules that are declared in the repo but haven't been initialised yet. <strong>--recursive</strong> descends into nested submodules (submodules that themselves contain submodules). If everything was already up to date, Git exits silently with no output.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- QUICK REF -->
+  <!-- ══════════════════════════════════════════ -->
+  <section class="section" id="s10">
+    <div class="qref">
+      <div class="qref-title">Quick reference</div>
+
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px">Setup &amp; inspection</p>
+      <div class="qref-grid" style="margin-bottom:20px">
+        <div class="qref-row">
+          <span class="qref-cmd">git init</span>
+          <span class="qref-desc">Init a new repo in current folder</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git init')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git status</span>
+          <span class="qref-desc">See what changed</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git status')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git log --oneline</span>
+          <span class="qref-desc">Browse commit history</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git log --oneline')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git remote -v</span>
+          <span class="qref-desc">List configured remotes</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git remote -v')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git tag -l</span>
+          <span class="qref-desc">List all tags</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git tag -l')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git submodule update --init --recursive</span>
+          <span class="qref-desc">Init &amp; fetch all submodules</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git submodule update --init --recursive')" title="copy">⎘</button>
+        </div>
+      </div>
+
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px">Branches</p>
+      <div class="qref-grid" style="margin-bottom:20px">
+        <div class="qref-row">
+          <span class="qref-cmd">git branch</span>
+          <span class="qref-desc">List local branches</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git branch')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git branch -r</span>
+          <span class="qref-desc">List remote branches</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git branch -r')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git checkout -b &lt;name&gt;</span>
+          <span class="qref-desc">Create and switch to branch</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git checkout -b branch-name')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git checkout &lt;name&gt;</span>
+          <span class="qref-desc">Switch to existing branch</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git checkout branch-name')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git branch -M &lt;new-name&gt;</span>
+          <span class="qref-desc">Force-rename current branch</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git branch -M new-name')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git branch --set-upstream-to=origin/&lt;branch&gt;</span>
+          <span class="qref-desc">Set remote tracking branch</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git branch --set-upstream-to=origin/branch-name')" title="copy">⎘</button>
+        </div>
+      </div>
+
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px">Stage, commit &amp; cherry-pick</p>
+      <div class="qref-grid" style="margin-bottom:20px">
+        <div class="qref-row">
+          <span class="qref-cmd">git add &lt;file&gt;</span>
+          <span class="qref-desc">Stage a specific file</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git add filename')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git commit -m "msg"</span>
+          <span class="qref-desc">Commit staged changes</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git commit -m "your message here"')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git cherry-pick &lt;hash&gt;</span>
+          <span class="qref-desc">Apply one commit to current branch</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git cherry-pick your-commit-hash')" title="copy">⎘</button>
+        </div>
+      </div>
+
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px">Push, fetch &amp; sync</p>
+      <div class="qref-grid">
+        <div class="qref-row">
+          <span class="qref-cmd">git push origin &lt;branch&gt;</span>
+          <span class="qref-desc">Push branch to your fork</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git push origin branch-name')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git push origin :&lt;branch&gt;</span>
+          <span class="qref-desc">Delete a remote branch</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git push origin :branch-name')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git fetch upstream</span>
+          <span class="qref-desc">Download upstream commits</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git fetch upstream')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git fetch upstream --tags</span>
+          <span class="qref-desc">Download upstream tags too</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git fetch upstream --tags')" title="copy">⎘</button>
+        </div>
+        <div class="qref-row">
+          <span class="qref-cmd">git rebase upstream/master</span>
+          <span class="qref-desc">Sync local master</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'git rebase upstream/master')" title="copy">⎘</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Git &amp; GitHub HTTPS Workflow — Betaflight example</div>
+  </footer>
+
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><scr

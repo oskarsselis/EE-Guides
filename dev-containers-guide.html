@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dev Containers — Complete Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d0f12;
+    --surface:   #13161b;
+    --surface2:  #1a1e25;
+    --border:    #252a34;
+    --border2:   #303642;
+    --text:      #e2e6ef;
+    --muted:     #7a8299;
+    --accent:    #4f8ef7;
+    --accent2:   #a78bfa;
+    --green:     #3ecf8e;
+    --amber:     #f59e0b;
+    --coral:     #f87171;
+    --teal:      #2dd4bf;
+    --tag-bg:    #1e2535;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 72px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .hero-eyebrow span {
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 56px;
+  }
+
+  .toc-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .toc ol {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 32px;
+  }
+
+  .toc a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.15s;
+  }
+
+  .toc a:hover { color: var(--accent); }
+
+  .toc-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 20px;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    margin-bottom: 64px;
+    scroll-margin-top: 24px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step-badge {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-badge.green  { background: var(--green);  color: #0d1a12; }
+  .step-badge.amber  { background: var(--amber);  color: #1a1200; }
+  .step-badge.purple { background: var(--accent2); color: #1a1030; }
+  .step-badge.teal   { background: var(--teal);   color: #0a1a18; }
+  .step-badge.coral  { background: var(--coral);  color: #1a0808; }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 28px 0 10px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  p { color: var(--muted); margin-bottom: 14px; }
+  p strong { color: var(--text); font-weight: 600; }
+
+  /* ── COMMAND BLOCKS ── */
+  .cmd-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+
+  .cmd-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cmd-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .copy-btn {
+    background: var(--tag-bg);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .copy-btn:hover { background: var(--border2); color: var(--text); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  .cmd-body { padding: 16px 20px; }
+
+  .cmd-body code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.9;
+    display: block;
+    white-space: pre;
+  }
+
+  .cmd-comment { color: #3d4a60; }
+  .cmd-dollar  { color: var(--muted); user-select: none; }
+  .cmd-main    { color: var(--accent); }
+  .cmd-arg     { color: var(--text); }
+  .cmd-string  { color: var(--green); }
+  .cmd-flag    { color: var(--accent2); }
+  .cmd-key     { color: var(--teal); }
+  .cmd-val     { color: var(--amber); }
+
+  /* ── OUTPUT BLOCKS ── */
+  .output-block {
+    background: #0a0c0f;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border2);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 12px 0 20px;
+  }
+
+  .output-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #3d4a60;
+    margin-bottom: 8px;
+  }
+
+  .output-block code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: #6a7a90;
+    line-height: 1.8;
+    display: block;
+    white-space: pre;
+  }
+
+  .out-hi  { color: var(--green); }
+  .out-dim { color: #3d4a60; }
+  .out-acc { color: var(--accent); }
+  .out-amb { color: var(--amber); }
+  .out-ast { color: var(--coral); }
+
+  /* ── NOTE BOXES ── */
+  .note {
+    background: var(--tag-bg);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .note strong { color: var(--accent); }
+  .note.warn { border-left-color: var(--amber); }
+  .note.warn strong { color: var(--amber); }
+  .note.tip { border-left-color: var(--green); }
+  .note.tip strong { color: var(--green); }
+
+  /* ── COMPARISON TABLE ── */
+  .compare {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13.5px;
+  }
+
+  .compare th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 16px;
+    text-align: left;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .compare td {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+  }
+
+  .compare td:first-child {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .compare tr:nth-child(even) td { background: var(--surface); }
+
+  /* ── QUICK REF ── */
+  .qref {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 56px;
+  }
+
+  .qref-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .qref-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .qref-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  .qref-cmd {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    min-width: 0;
+    flex: 1;
+  }
+
+  .qref-desc {
+    font-size: 12px;
+    color: var(--muted);
+    flex: 1.2;
+  }
+
+  .qref-copy {
+    background: none;
+    border: none;
+    color: var(--border2);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 4px;
+    transition: color 0.15s;
+    font-family: 'IBM Plex Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .qref-copy:hover { color: var(--accent); }
+  .qref-copy.copied { color: var(--green); }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 20px 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .flow-node {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .flow-node.coral  { border-color: var(--coral);  color: var(--coral); }
+  .flow-node.purple { border-color: var(--accent2); color: var(--accent2); }
+  .flow-node.teal   { border-color: var(--teal);   color: var(--teal); }
+  .flow-node.green  { border-color: var(--green);  color: var(--green); }
+  .flow-node.amber  { border-color: var(--amber);  color: var(--amber); }
+  .flow-node.accent { border-color: var(--accent); color: var(--accent); }
+
+  .flow-arrow {
+    color: var(--border2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+
+  /* ── FILE TREE ── */
+  .file-tree {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    color: var(--muted);
+  }
+
+  .file-tree .dir  { color: var(--accent); }
+  .file-tree .file { color: var(--text); }
+  .file-tree .note-inline { color: #3d4a60; }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 80px;
+    padding: 24px 0;
+    border-top: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #3d4a60;
+    letter-spacing: 0.06em;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 600px) {
+    .toc ol { grid-template-columns: 1fr; }
+    .qref-grid { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow"><span></span> Development Environments as Code</div>
+    <h1>Dev <em>Containers</em><br>Complete Guide</h1>
+    <p class="hero-sub">Define your entire development environment in a single config file. Any machine, any teammate, identical setup — every time.</p>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">// Contents</div>
+    <ol>
+      <li><a href="#s1"><span class="toc-num">01</span> What is a Dev Container?</a></li>
+      <li><a href="#s2"><span class="toc-num">02</span> Prerequisites & Installation</a></li>
+      <li><a href="#s3"><span class="toc-num">03</span> Project Structure</a></li>
+      <li><a href="#s4"><span class="toc-num">04</span> devcontainer.json Explained</a></li>
+      <li><a href="#s5"><span class="toc-num">05</span> Adding Features</a></li>
+      <li><a href="#s6"><span class="toc-num">06</span> Lifecycle Hooks</a></li>
+      <li><a href="#s7"><span class="toc-num">07</span> Docker Compose Setup</a></li>
+      <li><a href="#s8"><span class="toc-num">08</span> Environment Variables & Secrets</a></li>
+      <li><a href="#s9"><span class="toc-num">09</span> Best Practices</a></li>
+      <li><a href="#s10"><span class="toc-num">10</span> Quick Reference</a></li>
+    </ol>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- S1 — WHAT IS A DEV CONTAINER -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <div class="step-badge">01</div>
+      <h2>What is a Dev Container?</h2>
+    </div>
+
+    <p>A Dev Container is a <strong>Docker container configured specifically for development</strong>. Instead of installing runtimes, CLI tools, and extensions locally on each machine, your editor connects inside the container where everything is already set up.</p>
+
+    <p>The entire environment — language runtime, tools, extensions, settings — is defined as code and lives inside your project repository.</p>
+
+    <h3>How it works</h3>
+    <div class="flow">
+      <div class="flow-node">Your Machine</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node accent">VS Code</div>
+      <div class="flow-arrow">→ connects to →</div>
+      <div class="flow-node teal">Docker Container</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">Your Project Files</div>
+    </div>
+
+    <h3>Dev Container vs Local Setup vs venv</h3>
+    <table class="compare">
+      <tr>
+        <th>Feature</th>
+        <th>Local Setup</th>
+        <th>venv only</th>
+        <th>Dev Container</th>
+      </tr>
+      <tr>
+        <td>Isolates Python packages</td>
+        <td style="color:var(--coral)">✗</td>
+        <td style="color:var(--green)">✓</td>
+        <td style="color:var(--green)">✓</td>
+      </tr>
+      <tr>
+        <td>Isolates system tools</td>
+        <td style="color:var(--coral)">✗</td>
+        <td style="color:var(--coral)">✗</td>
+        <td style="color:var(--green)">✓</td>
+      </tr>
+      <tr>
+        <td>Same on every machine</td>
+        <td style="color:var(--coral)">✗</td>
+        <td style="color:var(--coral)">✗</td>
+        <td style="color:var(--green)">✓</td>
+      </tr>
+      <tr>
+        <td>Defined as version-controlled code</td>
+        <td style="color:var(--coral)">✗</td>
+        <td style="color:var(--coral)">✗</td>
+        <td style="color:var(--green)">✓</td>
+      </tr>
+      <tr>
+        <td>Works in GitHub Codespaces</td>
+        <td style="color:var(--coral)">✗</td>
+        <td style="color:var(--coral)">✗</td>
+        <td style="color:var(--green)">✓</td>
+      </tr>
+    </table>
+
+    <div class="note tip">
+      <strong>Key insight:</strong> Each project gets its own container. Two projects on the same machine are completely isolated — no dependency conflicts, no version clashes.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- S2 — PREREQUISITES -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <div class="step-badge green">02</div>
+      <h2>Prerequisites & Installation</h2>
+    </div>
+
+    <p>You need three things installed on your host machine before you can use Dev Containers.</p>
+
+    <h3>1 — Docker Desktop</h3>
+    <p>Download from <strong>docker.com/products/docker-desktop</strong>. During installation on Windows, use these settings:</p>
+    <div class="note tip">
+      <strong>✓ Use WSL 2 instead of Hyper-V</strong> — faster, uses less memory, recommended.<br>
+      <strong>□ Allow Windows Containers</strong> — leave unchecked. You will use Linux containers.<br>
+      <strong>□ Add shortcut to desktop</strong> — personal preference only.
+    </div>
+
+    <h3>2 — VS Code</h3>
+    <p>Download from <strong>code.visualstudio.com</strong>. Any recent version works.</p>
+
+    <h3>3 — Dev Containers Extension</h3>
+    <p>Install the <strong>Dev Containers</strong> extension by Microsoft inside VS Code (extension ID: <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">ms-vscode-remote.remote-containers</code>).</p>
+
+    <h3>Verify Docker is running</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'docker --version')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">docker</span> <span class="cmd-arg">--version</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">Docker version 24.0.7, build afdd53b</span></code>
+    </div>
+
+    <div class="note warn">
+      <strong>Docker daemon not running?</strong> You must open Docker Desktop and wait for it to fully start before VS Code can use it. Look for the Docker icon in your taskbar to stop animating.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- S3 — PROJECT STRUCTURE -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <div class="step-badge amber">03</div>
+      <h2>Project Structure</h2>
+    </div>
+
+    <p>All Dev Container config lives in a <strong>.devcontainer/</strong> folder at the root of your project. This folder is committed to version control — it's what makes the environment portable.</p>
+
+    <h3>Minimal structure</h3>
+    <div class="file-tree">
+<span class="dir">my-project/</span>
+├── <span class="dir">.devcontainer/</span>
+│   └── <span class="file">devcontainer.json</span>   <span class="note-inline">← main config file</span>
+├── <span class="file">requirements.txt</span>         <span class="note-inline">← Python dependencies</span>
+├── <span class="file">.gitignore</span>
+└── <span class="file">main.py</span>
+    </div>
+
+    <h3>Extended structure (with Dockerfile)</h3>
+    <div class="file-tree">
+<span class="dir">my-project/</span>
+├── <span class="dir">.devcontainer/</span>
+│   ├── <span class="file">devcontainer.json</span>
+│   └── <span class="file">Dockerfile</span>           <span class="note-inline">← custom image definition</span>
+├── <span class="file">requirements.txt</span>
+└── <span class="file">src/</span>
+    </div>
+
+    <h3>How to generate it in VS Code</h3>
+    <p>Press <strong>Ctrl + Shift + P</strong> → type <strong>Dev Containers: Add Dev Container Configuration Files</strong> → select <strong>Workspace</strong> → choose a template (e.g. Python 3) → select version → press OK.</p>
+
+    <div class="note">
+      <strong>Always choose Workspace</strong> — not user data folder. Workspace places the config inside your project so it gets committed to Git and shared with teammates.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- S4 — DEVCONTAINER.JSON -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <div class="step-badge purple">04</div>
+      <h2>devcontainer.json Explained</h2>
+    </div>
+
+    <p>This is the heart of your Dev Container. Every setting that defines your environment goes here.</p>
+
+    <h3>Example A — pre-built image (simplest)</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">.devcontainer/devcontainer.json</span>
+        <button class="copy-btn" onclick="copyCmd(this, `{\n  \"name\": \"Python 3\",\n  \"image\": \"mcr.microsoft.com/devcontainers/python:3.11\",\n  \"forwardPorts\": [8000],\n  \"postCreateCommand\": \"pip3 install -r requirements.txt\"\n}`)">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-comment">// devcontainer.json</span>
+{
+  <span class="cmd-key">"name"</span>: <span class="cmd-string">"Python 3"</span>,
+  <span class="cmd-key">"image"</span>: <span class="cmd-string">"mcr.microsoft.com/devcontainers/python:3.11"</span>,
+  <span class="cmd-key">"forwardPorts"</span>: [<span class="cmd-val">8000</span>],
+  <span class="cmd-key">"postCreateCommand"</span>: <span class="cmd-string">"pip3 install -r requirements.txt"</span>
+}</code></div>
+    </div>
+
+    <h3>Example B — custom Dockerfile</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">.devcontainer/Dockerfile</span>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-main">FROM</span> <span class="cmd-arg">mcr.microsoft.com/devcontainers/python:3.11</span>
+
+<span class="cmd-comment"># Install extra system packages</span>
+<span class="cmd-main">RUN</span> <span class="cmd-arg">apt-get update && apt-get install -y \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*</span>
+
+<span class="cmd-comment"># Install Poetry</span>
+<span class="cmd-main">RUN</span> <span class="cmd-arg">pip install poetry</span></code></div>
+    </div>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">.devcontainer/devcontainer.json — with Dockerfile</span>
+      </div>
+      <div class="cmd-body"><code>{
+  <span class="cmd-key">"name"</span>: <span class="cmd-string">"Python + Postgres"</span>,
+  <span class="cmd-key">"build"</span>: {
+    <span class="cmd-key">"dockerfile"</span>: <span class="cmd-string">"Dockerfile"</span>
+  },
+  <span class="cmd-key">"forwardPorts"</span>: [<span class="cmd-val">8000</span>, <span class="cmd-val">5432</span>],
+  <span class="cmd-key">"postCreateCommand"</span>: <span class="cmd-string">"poetry install"</span>,
+  <span class="cmd-key">"remoteUser"</span>: <span class="cmd-string">"vscode"</span>
+}</code></div>
+    </div>
+
+    <h3>Key properties reference</h3>
+    <table class="compare">
+      <tr>
+        <th>Property</th>
+        <th>Purpose</th>
+        <th>Example value</th>
+      </tr>
+      <tr>
+        <td>name</td>
+        <td style="color:var(--muted)">Display name shown in VS Code title bar</td>
+        <td style="color:var(--green)">"My Project"</td>
+      </tr>
+      <tr>
+        <td>image</td>
+        <td style="color:var(--muted)">Pre-built Docker image to use as base</td>
+        <td style="color:var(--green)">"python:3.11"</td>
+      </tr>
+      <tr>
+        <td>build</td>
+        <td style="color:var(--muted)">Build from a local Dockerfile instead</td>
+        <td style="color:var(--green)">{"dockerfile": "Dockerfile"}</td>
+      </tr>
+      <tr>
+        <td>forwardPorts</td>
+        <td style="color:var(--muted)">Expose container ports to your host machine</td>
+        <td style="color:var(--green)">[3000, 8080]</td>
+      </tr>
+      <tr>
+        <td>postCreateCommand</td>
+        <td style="color:var(--muted)">Command to run once after container is created</td>
+        <td style="color:var(--green)">"pip install -r requirements.txt"</td>
+      </tr>
+      <tr>
+        <td>remoteUser</td>
+        <td style="color:var(--muted)">User to run as inside the container</td>
+        <td style="color:var(--green)">"vscode"</td>
+      </tr>
+      <tr>
+        <td>features</td>
+        <td style="color:var(--muted)">Add pre-packaged tools without a Dockerfile</td>
+        <td style="color:var(--green)">{"ghcr.io/.../node:1": {}}</td>
+      </tr>
+      <tr>
+        <td>customizations</td>
+        <td style="color:var(--muted)">VS Code extensions and settings for the container</td>
+        <td style="color:var(--green)">{"vscode": {"extensions": [...]}}</td>
+      </tr>
+    </table>
+
+    <div class="note warn">
+      <strong>Pin your image versions!</strong> Use <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">python:3.11</code> not <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">python:latest</code>. Latest can change and break your environment unexpectedly.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- S5 — FEATURES -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <div class="step-badge teal">05</div>
+      <h2>Adding Features</h2>
+    </div>
+
+    <p><strong>Features</strong> are pre-packaged tool installers that you add directly to <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">devcontainer.json</code>. They are the cleanest way to add tools without writing a custom Dockerfile.</p>
+
+    <h3>Example — Node + Python + Docker-in-Docker + GitHub CLI</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">.devcontainer/devcontainer.json</span>
+      </div>
+      <div class="cmd-body"><code>{
+  <span class="cmd-key">"name"</span>: <span class="cmd-string">"Multi-tool Dev"</span>,
+  <span class="cmd-key">"image"</span>: <span class="cmd-string">"mcr.microsoft.com/devcontainers/base:ubuntu"</span>,
+  <span class="cmd-key">"features"</span>: {
+    <span class="cmd-key">"ghcr.io/devcontainers/features/node:1"</span>: {
+      <span class="cmd-key">"version"</span>: <span class="cmd-string">"20"</span>
+    },
+    <span class="cmd-key">"ghcr.io/devcontainers/features/python:1"</span>: {
+      <span class="cmd-key">"version"</span>: <span class="cmd-string">"3.11"</span>
+    },
+    <span class="cmd-key">"ghcr.io/devcontainers/features/docker-in-docker:2"</span>: {},
+    <span class="cmd-key">"ghcr.io/devcontainers/features/github-cli:1"</span>: {}
+  }
+}</code></div>
+    </div>
+
+    <p>After opening in container, verify the tools are available:</p>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">terminal — verify installed features</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'node --version\npython3 --version\ngh --version')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-dollar">$ </span><span class="cmd-main">node</span> <span class="cmd-flag">--version</span>
+<span class="cmd-dollar">$ </span><span class="cmd-main">python3</span> <span class="cmd-flag">--version</span>
+<span class="cmd-dollar">$ </span><span class="cmd-main">gh</span> <span class="cmd-flag">--version</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">v20.11.0</span>
+<span class="out-hi">Python 3.11.7</span>
+<span class="out-hi">gh version 2.43.1 (2024-01-31)</span></code>
+    </div>
+
+    <div class="note tip">
+      <strong>Browse all official features</strong> at <strong>containers.dev/features</strong> — there are features for Go, Rust, Java, kubectl, Terraform, and many more.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- S6 — LIFECYCLE HOOKS -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <div class="step-badge coral">06</div>
+      <h2>Lifecycle Hooks</h2>
+    </div>
+
+    <p>Dev Containers provide hooks that let you run commands at specific points in the container's lifecycle. Understanding which hook to use avoids wasted rebuild time.</p>
+
+    <h3>Hook execution order</h3>
+    <div class="flow">
+      <div class="flow-node coral">initializeCommand</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node amber">onCreateCommand</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node teal">postCreateCommand</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node accent">postStartCommand</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node green">postAttachCommand</div>
+    </div>
+
+    <h3>When each hook runs</h3>
+    <table class="compare">
+      <tr>
+        <th>Hook</th>
+        <th>Runs on host?</th>
+        <th>Runs every start?</th>
+        <th>Common use</th>
+      </tr>
+      <tr>
+        <td>initializeCommand</td>
+        <td style="color:var(--green)">Yes (host)</td>
+        <td style="color:var(--green)">Yes</td>
+        <td style="color:var(--muted)">Check prerequisites before container starts</td>
+      </tr>
+      <tr>
+        <td>onCreateCommand</td>
+        <td style="color:var(--coral)">No (container)</td>
+        <td style="color:var(--coral)">No — first create only</td>
+        <td style="color:var(--muted)">One-time setup tasks</td>
+      </tr>
+      <tr>
+        <td>postCreateCommand</td>
+        <td style="color:var(--coral)">No (container)</td>
+        <td style="color:var(--coral)">No — first create only</td>
+        <td style="color:var(--muted)">Install dependencies, run migrations</td>
+      </tr>
+      <tr>
+        <td>postStartCommand</td>
+        <td style="color:var(--coral)">No (container)</td>
+        <td style="color:var(--green)">Yes</td>
+        <td style="color:var(--muted)">Start background services</td>
+      </tr>
+      <tr>
+        <td>postAttachCommand</td>
+        <td style="color:var(--coral)">No (container)</td>
+        <td style="color:var(--green)">Yes</td>
+        <td style="color:var(--muted)">Display welcome message</td>
+      </tr>
+    </table>
+
+    <h3>Example configuration</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">.devcontainer/devcontainer.json — lifecycle hooks</span>
+      </div>
+      <div class="cmd-body"><code>{
+  <span class="cmd-key">"name"</span>: <span class="cmd-string">"My App"</span>,
+  <span class="cmd-key">"image"</span>: <span class="cmd-string">"mcr.microsoft.com/devcontainers/python:3.11"</span>,
+  <span class="cmd-key">"postCreateCommand"</span>: <span class="cmd-string">"pip install -r requirements.txt && python manage.py migrate"</span>,
+  <span class="cmd-key">"postStartCommand"</span>: <span class="cmd-string">"service nginx start"</span>,
+  <span class="cmd-key">"postAttachCommand"</span>: <span class="cmd-string">"echo '✅ Environment ready! Run: python main.py'"</span>
+}</code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output when attaching</div>
+      <code><span class="out-dim">Running postCreateCommand: pip install -r requirements.txt...</span>
+<span class="out-hi">Successfully installed numpy-2.4.4 plotly-5.18.0 dash-2.16.1</span>
+<span class="out-dim">Running migrations...</span>
+<span class="out-hi">✅ Environment ready! Run: python main.py</span></code>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- S7 — DOCKER COMPOSE -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <div class="step-badge">07</div>
+      <h2>Docker Compose Setup</h2>
+    </div>
+
+    <p>When your project needs multiple services — like a database or cache alongside your app — use <strong>Docker Compose</strong>. Your editor connects to the <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">app</code> service while other services run alongside it.</p>
+
+    <h3>docker-compose.yml</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">.devcontainer/docker-compose.yml</span>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-key">version</span>: <span class="cmd-string">'3.8'</span>
+<span class="cmd-key">services</span>:
+  <span class="cmd-key">app</span>:
+    <span class="cmd-key">build</span>:
+      <span class="cmd-key">context</span>: <span class="cmd-arg">.</span>
+      <span class="cmd-key">dockerfile</span>: <span class="cmd-arg">Dockerfile</span>
+    <span class="cmd-key">volumes</span>:
+      - <span class="cmd-string">..:/workspace:cached</span>
+    <span class="cmd-key">command</span>: <span class="cmd-arg">sleep infinity</span>   <span class="cmd-comment"># keeps container alive</span>
+
+  <span class="cmd-key">db</span>:
+    <span class="cmd-key">image</span>: <span class="cmd-arg">postgres:15</span>
+    <span class="cmd-key">environment</span>:
+      <span class="cmd-key">POSTGRES_PASSWORD</span>: <span class="cmd-string">devpassword</span>
+      <span class="cmd-key">POSTGRES_DB</span>: <span class="cmd-string">myapp_dev</span>
+
+  <span class="cmd-key">redis</span>:
+    <span class="cmd-key">image</span>: <span class="cmd-arg">redis:7-alpine</span></code></div>
+    </div>
+
+    <h3>devcontainer.json for Compose</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">.devcontainer/devcontainer.json</span>
+      </div>
+      <div class="cmd-body"><code>{
+  <span class="cmd-key">"name"</span>: <span class="cmd-string">"Full Stack Dev"</span>,
+  <span class="cmd-key">"dockerComposeFile"</span>: <span class="cmd-string">"docker-compose.yml"</span>,
+  <span class="cmd-key">"service"</span>: <span class="cmd-string">"app"</span>,
+  <span class="cmd-key">"workspaceFolder"</span>: <span class="cmd-string">"/workspace"</span>,
+  <span class="cmd-key">"forwardPorts"</span>: [<span class="cmd-val">8000</span>, <span class="cmd-val">5432</span>, <span class="cmd-val">6379</span>],
+  <span class="cmd-key">"postCreateCommand"</span>: <span class="cmd-string">"pip install -r requirements.txt"</span>
+}</code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output when container starts</div>
+      <code><span class="out-dim">[1 of 3] Starting app   ...</span>
+<span class="out-hi">[2 of 3] Starting db    ... done</span>
+<span class="out-hi">[3 of 3] Starting redis ... done</span>
+<span class="out-dim">Running postCreateCommand: pip install -r requirements.txt</span>
+<span class="out-hi">✓ All packages installed. Container ready.</span></code>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- S8 — ENV VARS & SECRETS -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <div class="step-badge green">08</div>
+      <h2>Environment Variables & Secrets</h2>
+    </div>
+
+    <p><strong>Never hardcode secrets in devcontainer.json.</strong> The file is committed to version control and visible to everyone. Use these patterns instead.</p>
+
+    <h3>Pattern A — Read from host environment</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">devcontainer.json — reading host env vars</span>
+      </div>
+      <div class="cmd-body"><code>{
+  <span class="cmd-key">"remoteEnv"</span>: {
+    <span class="cmd-key">"DATABASE_URL"</span>: <span class="cmd-string">"${localEnv:DATABASE_URL}"</span>,
+    <span class="cmd-key">"API_KEY"</span>: <span class="cmd-string">"${localEnv:MY_API_KEY}"</span>
+  }
+}</code></div>
+    </div>
+
+    <p>The <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">${localEnv:VAR_NAME}</code> syntax reads a variable from your host machine — nothing sensitive enters the config file.</p>
+
+    <h3>Pattern B — Local .env file (gitignored)</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">devcontainer.json — using .env.local file</span>
+      </div>
+      <div class="cmd-body"><code>{
+  <span class="cmd-key">"runArgs"</span>: [<span class="cmd-string">"--env-file"</span>, <span class="cmd-string">".devcontainer/.env.local"</span>]
+}</code></div>
+    </div>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">.gitignore — exclude the secrets file</span>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-comment"># Dev Container secrets — never commit this</span>
+<span class="cmd-arg">.devcontainer/.env.local</span></code></div>
+    </div>
+
+    <div class="note warn">
+      <strong>Never commit .env files.</strong> Add them to .gitignore immediately. Use a <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">.env.example</code> file with placeholder values to document what variables are needed.
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- S9 — BEST PRACTICES -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="section" id="s9">
+    <div class="section-header">
+      <div class="step-badge amber">09</div>
+      <h2>Best Practices</h2>
+    </div>
+
+    <h3>✅ Do</h3>
+
+    <div class="note tip">
+      <strong>Pin image versions.</strong> Use <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">python:3.11</code> not <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">python:latest</code> — latest changes and breaks reproducibility.
+    </div>
+
+    <div class="note tip">
+      <strong>Use Features over custom Dockerfiles</strong> when possible. Features are maintained by the community, composable, and require zero Dockerfile knowledge.
+    </div>
+
+    <div class="note tip">
+      <strong>Cache dependencies with named volumes</strong> to avoid reinstalling packages on every rebuild:
+    </div>
+
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">devcontainer.json — volume mount for dependency cache</span>
+      </div>
+      <div class="cmd-body"><code>{
+  <span class="cmd-key">"mounts"</span>: [
+    <span class="cmd-string">"source=myproject-pip-cache,target=/root/.cache/pip,type=volume"</span>
+  ]
+}</code></div>
+    </div>
+
+    <div class="note tip">
+      <strong>Set remoteUser to a non-root user.</strong> Most Microsoft base images use <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">vscode</code> — always prefer this over running as root to avoid file permission issues.
+    </div>
+
+    <div class="note tip">
+      <strong>Always commit .devcontainer/</strong> to version control. That is the entire point — sharing the environment definition with your team.
+    </div>
+
+    <h3>❌ Avoid</h3>
+
+    <div class="note warn">
+      <strong>Do not run as root</strong> inside the container. It causes file ownership problems and is a security risk.
+    </div>
+
+    <div class="note warn">
+      <strong>Do not hardcode secrets.</strong> API keys, passwords, and tokens must never appear in devcontainer.json or any committed file.
+    </div>
+
+    <div class="note warn">
+      <strong>Do not make images too heavy.</strong> A container that takes 15 minutes to build discourages use. Add only what the project actually needs.
+    </div>
+
+    <div class="note warn">
+      <strong>Do not skip .dockerignore.</strong> Without it, Docker sends your entire project directory as build context — including node_modules, .venv, and other large folders — slowing every rebuild.
+    </div>
+
+    <h3>Recommended .gitignore entries</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">.gitignore</span>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-comment"># Python</span>
+<span class="cmd-arg">__pycache__/</span>
+<span class="cmd-arg">*.pyc</span>
+<span class="cmd-arg">*.pyo</span>
+<span class="cmd-arg">.venv/</span>
+<span class="cmd-arg">venv/</span>
+
+<span class="cmd-comment"># Secrets</span>
+<span class="cmd-arg">.env</span>
+<span class="cmd-arg">.env.local</span>
+<span class="cmd-arg">.devcontainer/.env.local</span>
+
+<span class="cmd-comment"># OS</span>
+<span class="cmd-arg">.DS_Store</span></code></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════ -->
+  <!-- S10 — QUICK REF -->
+  <!-- ═══════════════════════════════════════ -->
+  <section class="section" id="s10">
+    <div class="qref">
+      <div class="qref-title">Quick Reference</div>
+      <div class="qref-grid">
+
+        <div class="qref-row">
+          <span class="qref-cmd">Reopen in Container</span>
+          <span class="qref-desc">Launch your Dev Container</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'Ctrl+Shift+P → Dev Containers: Reopen in Container')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">Rebuild Container</span>
+          <span class="qref-desc">Apply config changes</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'Ctrl+Shift+P → Dev Containers: Rebuild Container')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">pip list</span>
+          <span class="qref-desc">Verify installed packages</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'pip list')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">pip show &lt;pkg&gt;</span>
+          <span class="qref-desc">Check package install location</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'pip show package-name')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">docker ps</span>
+          <span class="qref-desc">List running containers</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'docker ps')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">docker images</span>
+          <span class="qref-desc">List downloaded images</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'docker images')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">docker system prune</span>
+          <span class="qref-desc">Clean up unused containers</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'docker system prune')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">Add Dev Container Config</span>
+          <span class="qref-desc">Generate config from template</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'Ctrl+Shift+P → Dev Containers: Add Dev Container Configuration Files')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">Open Folder in Container</span>
+          <span class="qref-desc">Open any folder as container</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'Ctrl+Shift+P → Dev Containers: Open Folder in Container')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">Clone Repo in Container</span>
+          <span class="qref-desc">Clone + open in one step</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'Ctrl+Shift+P → Dev Containers: Clone Repository in Container Volume')" title="copy">⎘</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Dev Containers — Complete Guide</div>
+    <div>containers.dev</div>
+  </footer>
+
+</div>
+
+<script>
+  function copyCmd(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      const original = btn.textContent;
+      btn.textContent = 'copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.textContent = original;
+      }, 1800);
+    });
+  }
+</script>
+</body>
+</html>

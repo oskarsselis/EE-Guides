@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>uv — Python Package Manager Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d0f12;
+    --surface:   #13161b;
+    --surface2:  #1a1e25;
+    --border:    #252a34;
+    --border2:   #303642;
+    --text:      #e2e6ef;
+    --muted:     #7a8299;
+    --accent:    #4f8ef7;
+    --accent2:   #a78bfa;
+    --green:     #3ecf8e;
+    --amber:     #f59e0b;
+    --coral:     #f87171;
+    --teal:      #2dd4bf;
+    --tag-bg:    #1e2535;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  .hero {
+    padding: 72px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 56px;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+
+  .hero-eyebrow span {
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  h1 em { font-style: normal; color: var(--accent); }
+
+  .hero-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+  }
+
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 56px;
+  }
+
+  .toc-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .toc ol {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 32px;
+  }
+
+  .toc a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: color 0.15s;
+  }
+
+  .toc a:hover { color: var(--accent); }
+
+  .toc-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    min-width: 20px;
+  }
+
+  .section {
+    margin-bottom: 64px;
+    scroll-margin-top: 24px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step-badge {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .step-badge.green  { background: var(--green);   color: #0d1a12; }
+  .step-badge.amber  { background: var(--amber);   color: #1a1200; }
+  .step-badge.purple { background: var(--accent2); color: #1a1030; }
+  .step-badge.teal   { background: var(--teal);    color: #0a1a18; }
+  .step-badge.coral  { background: var(--coral);   color: #1a0808; }
+
+  h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 28px 0 10px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  p { color: var(--muted); margin-bottom: 14px; }
+  p strong { color: var(--text); font-weight: 600; }
+
+  .cmd-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+
+  .cmd-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cmd-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .copy-btn {
+    background: var(--tag-bg);
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .copy-btn:hover { background: var(--border2); color: var(--text); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+  .cmd-body { padding: 16px 20px; }
+
+  .cmd-body code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.9;
+    display: block;
+    white-space: pre;
+  }
+
+  .cmd-comment { color: #3d4a60; }
+  .cmd-dollar  { color: var(--muted); user-select: none; }
+  .cmd-ps      { color: var(--accent2); user-select: none; }
+  .cmd-main    { color: var(--accent); }
+  .cmd-arg     { color: var(--text); }
+  .cmd-string  { color: var(--green); }
+  .cmd-flag    { color: var(--accent2); }
+  .cmd-key     { color: var(--teal); }
+  .cmd-val     { color: var(--amber); }
+
+  .output-block {
+    background: #0a0c0f;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border2);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 12px 0 20px;
+  }
+
+  .output-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #3d4a60;
+    margin-bottom: 8px;
+  }
+
+  .output-block code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: #6a7a90;
+    line-height: 1.8;
+    display: block;
+    white-space: pre;
+  }
+
+  .out-hi  { color: var(--green); }
+  .out-dim { color: #3d4a60; }
+  .out-acc { color: var(--accent); }
+  .out-amb { color: var(--amber); }
+  .out-ast { color: var(--coral); }
+
+  .note {
+    background: var(--tag-bg);
+    border: 1px solid var(--border2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .note strong { color: var(--accent); }
+  .note.warn { border-left-color: var(--amber); }
+  .note.warn strong { color: var(--amber); }
+  .note.tip { border-left-color: var(--green); }
+  .note.tip strong { color: var(--green); }
+
+  .compare {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13.5px;
+  }
+
+  .compare th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 16px;
+    text-align: left;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+
+  .compare td {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+  }
+
+  .compare td:first-child {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .compare tr:nth-child(even) td { background: var(--surface); }
+
+  .qref {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 56px;
+  }
+
+  .qref-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+  .qref-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .qref-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+
+  .qref-cmd {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    min-width: 0;
+    flex: 1;
+  }
+
+  .qref-desc { font-size: 12px; color: var(--muted); flex: 1.2; }
+
+  .qref-copy {
+    background: none;
+    border: none;
+    color: var(--border2);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 4px;
+    transition: color 0.15s;
+    font-family: 'IBM Plex Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .qref-copy:hover { color: var(--accent); }
+  .qref-copy.copied { color: var(--green); }
+
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 20px 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .flow-node {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .flow-node.coral  { border-color: var(--coral);  color: var(--coral); }
+  .flow-node.purple { border-color: var(--accent2); color: var(--accent2); }
+  .flow-node.teal   { border-color: var(--teal);   color: var(--teal); }
+  .flow-node.green  { border-color: var(--green);  color: var(--green); }
+  .flow-node.amber  { border-color: var(--amber);  color: var(--amber); }
+  .flow-node.accent { border-color: var(--accent); color: var(--accent); }
+
+  .flow-arrow {
+    color: var(--border2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+
+  .file-tree {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    color: var(--muted);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .file-tree .dir  { color: var(--accent); }
+  .file-tree .file { color: var(--text); }
+  .file-tree .note-inline { color: #3d4a60; }
+
+  footer {
+    margin-top: 80px;
+    padding: 24px 0;
+    border-top: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #3d4a60;
+    letter-spacing: 0.06em;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 600px) {
+    .toc ol { grid-template-columns: 1fr; }
+    .qref-grid { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow"><span></span> Modern Python Tooling</div>
+    <h1><em>uv</em> — Python Package<br>Manager Guide</h1>
+    <p class="hero-sub">An extremely fast Python package and project manager written in Rust. Replace pip, venv, pyenv, and pip-tools with a single tool — 10–100× faster.</p>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">// Contents</div>
+    <ol>
+      <li><a href="#s1"><span class="toc-num">01</span> What is uv?</a></li>
+      <li><a href="#s2"><span class="toc-num">02</span> Installation (Windows)</a></li>
+      <li><a href="#s3"><span class="toc-num">03</span> Project Initialization</a></li>
+      <li><a href="#s4"><span class="toc-num">04</span> Adding Packages</a></li>
+      <li><a href="#s5"><span class="toc-num">05</span> Python Version Management</a></li>
+      <li><a href="#s6"><span class="toc-num">06</span> Running Scripts</a></li>
+      <li><a href="#s7"><span class="toc-num">07</span> Quick Reference</a></li>
+    </ol>
+  </div>
+
+  <!-- S1 — WHAT IS UV -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <div class="step-badge">01</div>
+      <h2>What is uv?</h2>
+    </div>
+
+    <p><strong>uv</strong> is an all-in-one Python package manager built in Rust by Astral (the team behind Ruff). It replaces pip, venv, pyenv, and pip-compile with a single, extremely fast binary that handles everything from Python installation to dependency locking.</p>
+
+    <div class="note tip">
+      <strong>Key insight:</strong> uv manages its own Python installs and virtualenvs automatically. You never need to activate a venv manually — just use <code style="color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:13px">uv run</code>.
+    </div>
+  </section>
+
+  <!-- S2 — INSTALLATION (WINDOWS) -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <div class="step-badge green">02</div>
+      <h2>Installation (Windows)</h2>
+    </div>
+
+    <p>The recommended way to install uv on Windows is via the official PowerShell installer. No admin rights required — it installs to your user profile.</p>
+
+    <h3>Install via PowerShell</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'powershell -ExecutionPolicy ByPass -c \"irm https://astral.sh/uv/install.ps1 | iex\"')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">powershell</span> <span class="cmd-flag">-ExecutionPolicy ByPass</span> <span class="cmd-flag">-c</span> <span class="cmd-string">"irm https://astral.sh/uv/install.ps1 | iex"</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">downloading uv 0.11.14 (x86_64-pc-windows-msvc)</span>
+<span class="out-dim">installing to C:\Users\oskars\.local\bin</span>
+<span class="out-acc">  uv.exe</span>
+<span class="out-acc">  uvx.exe</span>
+<span class="out-acc">  uvw.exe</span>
+<span class="out-hi">everything's installed!</span>
+<span class="out-dim">To add C:\Users\oskars\.local\bin to your PATH, either restart your shell or run:</span>
+<span class="out-amb">    set Path=C:\Users\oskars\.local\bin;%Path%   (cmd)</span>
+<span class="out-amb">    $env:Path = "C:\Users\oskars\.local\bin;$env:Path"   (powershell)</span></code>
+    </div>
+
+    <div class="note warn">
+      <strong>PATH not updated yet?</strong> Either restart your PowerShell window, or run the <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">$env:Path</code> line shown above to apply it immediately in the current session.
+    </div>
+
+    <h3>Verify the install</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv --version')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv</span> <span class="cmd-flag">--version</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">uv 0.11.14 (3fdfdc7d4 2026-05-12 x86_64-pc-windows-msvc)</span></code>
+    </div>
+
+    <div class="note tip">
+      <strong>Self-updating:</strong> keep uv current by running <code style="color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:13px">uv self update</code> at any time.
+    </div>
+  </section>
+
+  <!-- S3 — PROJECT INITIALIZATION -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <div class="step-badge amber">03</div>
+      <h2>Project Initialization</h2>
+    </div>
+
+    <p>Use <strong>uv init</strong> to scaffold a new project. uv creates a <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">pyproject.toml</code>, a <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">README.md</code>, and a pinned Python version. The <code style="color:var(--accent2);font-family:'IBM Plex Mono',monospace;font-size:13px">--package</code> flag controls which of two layouts you get.</p>
+
+    <h3>Initialize an application (default)</h3>
+    <p>Without <code style="color:var(--accent2);font-family:'IBM Plex Mono',monospace;font-size:13px">--package</code>, uv scaffolds a flat <strong>application</strong>: a runnable <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">main.py</code> at the root and a minimal pyproject.toml with no build system. Best for scripts and apps you run but don't distribute.</p>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv init project_name --python 3.13\ncd project_name')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv init</span> <span class="cmd-arg">project_name</span> <span class="cmd-flag">--python</span> <span class="cmd-val">3.13</span>
+<span class="cmd-ps">PS&gt; </span><span class="cmd-main">cd</span> <span class="cmd-arg">project_name</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">Initialized project `project_name`</span></code>
+    </div>
+
+    <h3>Initialize a package (--package)</h3>
+    <p>With <code style="color:var(--accent2);font-family:'IBM Plex Mono',monospace;font-size:13px">--package</code>, uv scaffolds a <strong>src layout</strong> with an importable package, plus a <code style="color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:13px">[build-system]</code> and a <code style="color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:13px">[project.scripts]</code> entry point. This makes the project installable and distributable. Best for libraries or CLI tools you publish or install.</p>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv init --package project_name --python 3.13\ncd project_name')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv init</span> <span class="cmd-flag">--package</span> <span class="cmd-arg">project_name</span> <span class="cmd-flag">--python</span> <span class="cmd-val">3.13</span>
+<span class="cmd-ps">PS&gt; </span><span class="cmd-main">cd</span> <span class="cmd-arg">project_name</span></code></div>
+    </div>
+
+    <h3>Generated project structure</h3>
+    <p><strong>Application</strong> — flat layout with a runnable script:</p>
+    <div class="file-tree">
+<span class="dir">project_name/</span>
+├── <span class="file">pyproject.toml</span>      <span class="note-inline">← metadata (no build system)</span>
+├── <span class="file">.python-version</span>     <span class="note-inline">← pins Python version for the project</span>
+├── <span class="file">README.md</span>
+├── <span class="file">.gitignore</span>
+└── <span class="file">main.py</span>          <span class="note-inline">← runnable entry script</span>
+    </div>
+
+    <p><strong>Package</strong> (<code style="color:var(--accent2);font-family:'IBM Plex Mono',monospace;font-size:12px">--package</code>) — src layout, installable:</p>
+    <div class="file-tree">
+<span class="dir">project_name/</span>
+├── <span class="file">pyproject.toml</span>      <span class="note-inline">← metadata + [build-system] + [project.scripts]</span>
+├── <span class="file">.python-version</span>
+├── <span class="file">README.md</span>
+├── <span class="file">.gitignore</span>
+└── <span class="dir">src/</span>
+    └── <span class="dir">project_name/</span>
+        └── <span class="file">__init__.py</span>  <span class="note-inline">← importable package code</span>
+    </div>
+
+    <div class="note tip">
+      <strong>.venv and uv.lock come later.</strong> Neither exists right after <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">uv init</code> — uv creates them on the first <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">uv add</code>, <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">uv run</code>, or <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">uv sync</code>. Commit <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">uv.lock</code> once it appears.
+    </div>
+  </section>
+
+  <!-- S4 — ADDING PACKAGES -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <div class="step-badge purple">04</div>
+      <h2>Adding Packages</h2>
+    </div>
+
+    <p><strong>uv add</strong> installs a package, adds it to <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">pyproject.toml</code>, and updates the lock file — all in one step.</p>
+
+    <h3>Add packages</h3>
+    <p><code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">uv add</code> takes one or more packages, space-separated.</p>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv add opencv-python')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv add</span> <span class="cmd-arg">opencv-python</span>
+<span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv add</span> <span class="cmd-arg">requests pandas numpy</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">Resolved 3 packages in 240ms</span>
+<span class="out-dim">Prepared 3 packages in 1.2s</span>
+<span class="out-hi">Installed 3 packages in 80ms</span>
+<span class="out-acc"> + numpy==2.2.5</span>
+<span class="out-acc"> + opencv-python==4.11.0.86</span></code>
+    </div>
+
+    <h3>Add a dev-only dependency</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv add --dev pytest ruff')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv add</span> <span class="cmd-flag">--dev</span> <span class="cmd-arg">pytest ruff</span></code></div>
+    </div>
+
+    <p>Dev dependencies go under <code style="color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:13px">[tool.uv.dev-dependencies]</code> in pyproject.toml and are excluded from production installs.</p>
+
+    <h3>Remove a package</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv remove opencv-python')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv remove</span> <span class="cmd-arg">opencv-python</span></code></div>
+    </div>
+  </section>
+
+  <!-- S5 — PYTHON VERSION MANAGEMENT -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <div class="step-badge teal">05</div>
+      <h2>Python Version Management</h2>
+    </div>
+
+    <p>uv manages Python installations itself — no pyenv or python.org installer needed. Versions are downloaded on demand and cached globally.</p>
+
+    <h3>Install a Python version</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv python install 3.13')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv python install</span> <span class="cmd-val">3.13</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">Searching for Python versions matching: Python 3.13</span>
+<span class="out-dim">Downloading cpython-3.13.3-windows-x86_64-none</span>
+<span class="out-hi">Installed Python 3.13.3 in 4.2s</span></code>
+    </div>
+
+    <h3>Pin a project to a specific version</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell — drop from 3.14 to 3.13</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv python pin 3.13')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv python pin</span> <span class="cmd-val">3.13</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-hi">Pinned `.python-version` to `3.13`</span></code>
+    </div>
+
+    <p>After pinning, re-run <code style="color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:13px">uv add &lt;package&gt;</code> and uv will rebuild the environment against the new version.</p>
+
+    <h3>List available Python versions</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv python list')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv python list</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">cpython-3.14.0a7-windows-x86_64-none   &lt;download available&gt;</span>
+<span class="out-acc">cpython-3.13.3-windows-x86_64-none    C:\Users\oskars\AppData\Roaming\uv\python\...</span>
+<span class="out-dim">cpython-3.12.9-windows-x86_64-none    &lt;download available&gt;</span></code>
+    </div>
+  </section>
+
+  <!-- S6 — RUNNING SCRIPTS -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <div class="step-badge coral">06</div>
+      <h2>Running Scripts</h2>
+    </div>
+
+    <p><strong>uv run</strong> executes a command inside the project's managed virtual environment — no activation step needed. It syncs the environment against the lock file before every run.</p>
+
+    <h3>Run your main script</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv run main.py')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv run</span> <span class="cmd-arg">main.py</span></code></div>
+    </div>
+
+    <div class="output-block">
+      <div class="output-label">expected output</div>
+      <code><span class="out-dim">Using CPython 3.13.3 interpreter at: .venv\Scripts\python.exe</span>
+<span class="out-hi">Hello from my-project!</span></code>
+    </div>
+
+    <h3>Run tools installed in the project</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell — pytest, ruff, etc.</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uv run pytest\nuv run ruff check .')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv run</span> <span class="cmd-arg">pytest</span>
+<span class="cmd-ps">PS&gt; </span><span class="cmd-main">uv run</span> <span class="cmd-arg">ruff check .</span></code></div>
+    </div>
+
+    <h3>Run a one-off tool without adding it to the project</h3>
+    <div class="cmd-block">
+      <div class="cmd-header">
+        <span class="cmd-label">powershell — uvx runs in a throwaway env</span>
+        <button class="copy-btn" onclick="copyCmd(this, 'uvx black .')">copy</button>
+      </div>
+      <div class="cmd-body"><code><span class="cmd-ps">PS&gt; </span><span class="cmd-main">uvx</span> <span class="cmd-arg">black .</span></code></div>
+    </div>
+
+    <div class="note tip">
+      <strong>No more activate/deactivate.</strong> <code style="color:var(--green);font-family:'IBM Plex Mono',monospace;font-size:13px">uv run</code> handles environment activation internally. You can still run <code style="font-family:'IBM Plex Mono',monospace;font-size:12px">.venv\Scripts\activate</code> if you prefer an interactive session, but it is never required.
+    </div>
+  </section>
+
+  <!-- S7 — QUICK REFERENCE -->
+  <section class="section" id="s7">
+    <div class="qref">
+      <div class="qref-title">Quick Reference</div>
+      <div class="qref-grid">
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv init --python 3.13</span>
+          <span class="qref-desc">Create a new project</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv init --python 3.13')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv add &lt;pkg&gt;</span>
+          <span class="qref-desc">Install & lock a package</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv add ')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv remove &lt;pkg&gt;</span>
+          <span class="qref-desc">Uninstall a package</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv remove ')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv sync</span>
+          <span class="qref-desc">Sync env from lock file</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv sync')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv lock --upgrade</span>
+          <span class="qref-desc">Upgrade locked versions</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv lock --upgrade')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv run main.py</span>
+          <span class="qref-desc">Run script in managed env</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv run main.py')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv pip list</span>
+          <span class="qref-desc">List installed packages</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv pip list')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv python pin 3.13</span>
+          <span class="qref-desc">Pin project Python version</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv python pin 3.13')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv python install 3.13</span>
+          <span class="qref-desc">Download & install Python</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv python install 3.13')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv add --dev pytest</span>
+          <span class="qref-desc">Add dev-only dependency</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv add --dev pytest')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv self update</span>
+          <span class="qref-desc">Update uv itself</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv self update')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uvx &lt;tool&gt;</span>
+          <span class="qref-desc">Run tool without installing</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uvx ')" title="copy">⎘</button>
+        </div>
+
+        <div class="qref-row">
+          <span class="qref-cmd">uv pip freeze</span>
+          <span class="qref-desc">Export installed versions</span>
+          <button class="qref-copy" onclick="copyCmd(this, 'uv pip freeze')" title="copy">⎘</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>uv — Python Package Manager Guide</div>
+    <div>docs.astral.sh/uv</div>
+  </footer>
+
+</div>
+
+<script>
+  function copyCmd(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      const original = btn.textContent;
+      btn.textContent = btn.classList.contains('qref-copy') ? '✓' : 'copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.textContent = original;
+      }, 1800);
+    });
+  }
+</script>
+</body>
+</html>

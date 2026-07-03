@@ -249,7 +249,7 @@
   </div>
   <div class="step-body">
     In <strong>Command Prompt</strong>:
-    <pre>ssh-keygen -t ed25519 -N "" -f %USERPROFILE%\.ssh\id_ed25519</pre>
+    <pre>ssh-keygen -t ed25519</pre>
     This creates a private key (<code>id_ed25519</code>) and public key (<code>id_ed25519.pub</code>) in <code>C:\Users\&lt;you&gt;\.ssh\</code>.
     <div class="verify">
       <strong>Verify</strong>
@@ -287,6 +287,7 @@ type %USERPROFILE%\.ssh\id_ed25519.pub | ssh orangepi@192.168.50.2 "mkdir -p ~/.
     <div class="step-title">Configure SSH hosts</div>
   </div>
   <div class="step-body">
+    <strong>Option A — Via Notepad</strong><br>
     In <strong>Command Prompt</strong>:
     <pre>notepad %USERPROFILE%\.ssh\config</pre>
     Add the following and save:
@@ -297,6 +298,15 @@ type %USERPROFILE%\.ssh\id_ed25519.pub | ssh orangepi@192.168.50.2 "mkdir -p ~/.
 <span class="key">Host</span> <span class="val">mast-pi</span>
     <span class="key">HostName</span> <span class="val">192.168.50.2</span>
     <span class="key">User</span> <span class="val">orangepi</span></pre>
+
+    <strong>Option B — Via VS Code</strong><br>
+    <ol>
+      <li>Press <code>F1</code> → type <strong>Remote-SSH: Connect to Host</strong></li>
+      <li>Click <strong>Add New SSH Host...</strong></li>
+      <li>Enter <code>ssh orangepi@192.168.50.1</code> → press Enter</li>
+      <li>When asked which config file to save to, select <code>C:\Users\&lt;you&gt;\.ssh\config</code></li>
+      <li>Repeat for <code>ssh orangepi@192.168.50.2</code></li>
+    </ol>
   </div>
 </div>
 

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VS Code Remote SSH — Orange Pi Dev Setup</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3a;
+    --accent: #4fc3f7;
+    --accent2: #81c784;
+    --text: #e0e0e0;
+    --muted: #7a7f99;
+    --code-bg: #12151f;
+    --warn: #ffd54f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 48px 24px;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  header {
+    border-left: 3px solid var(--accent);
+    padding-left: 20px;
+    margin-bottom: 48px;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.3px;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 6px;
+  }
+
+  .network-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 2;
+  }
+
+  .network-diagram span.highlight { color: var(--accent); }
+  .network-diagram span.green { color: var(--accent2); }
+
+  .step {
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #000;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .step-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .step-body {
+    padding-left: 42px;
+  }
+
+  ol {
+    padding-left: 18px;
+  }
+
+  ol li {
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  code {
+    background: var(--code-bg);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+  }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    overflow-x: auto;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #c5c8d6;
+  }
+
+  pre .comment { color: var(--muted); }
+  pre .key { color: var(--accent); }
+  pre .val { color: var(--accent2); }
+
+  .verify {
+    background: #0d1f12;
+    border: 1px solid #2e4d33;
+    border-left: 3px solid var(--accent2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--accent2);
+  }
+
+  .verify strong { display: block; margin-bottom: 4px; color: #a5d6a7; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  .ip-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+
+  .ip-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--code-bg);
+    color: var(--muted);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ip-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ip-table td:first-child { color: #fff; }
+  .ip-table td:nth-child(2) { color: var(--accent); font-family: monospace; }
+  .ip-table td:nth-child(3) { color: var(--muted); font-size: 12px; }
+
+  footer {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    pre, code, .network-diagram { background: #f5f5f5; color: #333; }
+    .verify { background: #f0fff0; color: #2e7d32; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>VS Code Remote SSH — Orange Pi Dev Setup</h1>
+  <p>GCS Pi (192.168.50.1) &nbsp;·&nbsp; Mast Pi (192.168.50.2) &nbsp;·&nbsp; Windows PC (192.168.50.100)</p>
+</header>
+
+<div class="network-diagram">
+  <span class="green">Windows PC</span> (192.168.50.100)<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;│ USB-C Ethernet adapter<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;│<br>
+  &nbsp;&nbsp;[Switch]<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;│<br>
+  &nbsp;&nbsp;[Switch]<br>
+  &nbsp;&nbsp;&nbsp;├── <span class="highlight">GCS Pi</span> — 192.168.50.1 &nbsp;(enP4p65s0)<br>
+  &nbsp;&nbsp;&nbsp;└── <span class="highlight">Mast Pi</span> — 192.168.50.2 &nbsp;(enP4p65s0)
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">1</div>
+    <div class="step-title">Set static IP on the USB-C Ethernet adapter</div>
+  </div>
+  <div class="step-body">
+    <ol>
+      <li>Press <code>Win + R</code> → type <code>ncpa.cpl</code> → Enter</li>
+      <li>Find the USB-C Ethernet adapter (e.g. "Ethernet 2")</li>
+      <li>Right-click → <strong>Properties</strong></li>
+      <li>Double-click <strong>Internet Protocol Version 4 (TCP/IPv4)</strong></li>
+      <li>Select <strong>Use the following IP address</strong> and enter:</li>
+    </ol>
+    <table class="ip-table">
+      <tr><th>Field</th><th>Value</th><th>Note</th></tr>
+      <tr><td>IP address</td><td>192.168.50.100</td><td>Same subnet as Pis</td></tr>
+      <tr><td>Subnet mask</td><td>255.255.255.0</td><td>/24</td></tr>
+      <tr><td>Default gateway</td><td></td><td>Leave empty</td></tr>
+    </table>
+    <div class="verify">
+      <strong>Verify</strong>
+      Open Command Prompt and run:<br>
+      <code>ping 192.168.50.1</code> and <code>ping 192.168.50.2</code><br>
+      Both should reply with 0% loss.
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">2</div>
+    <div class="step-title">Generate SSH key pair on Windows</div>
+  </div>
+  <div class="step-body">
+    In <strong>Command Prompt</strong>:
+    <pre>ssh-keygen -t ed25519 -N "" -f %USERPROFILE%\.ssh\id_ed25519</pre>
+    This creates a private key (<code>id_ed25519</code>) and public key (<code>id_ed25519.pub</code>) in <code>C:\Users\&lt;you&gt;\.ssh\</code>.
+    <div class="verify">
+      <strong>Verify</strong>
+      <code>dir %USERPROFILE%\.ssh</code><br>
+      You should see both <code>id_ed25519</code> and <code>id_ed25519.pub</code>.
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">3</div>
+    <div class="step-title">Copy public key to both Pis</div>
+  </div>
+  <div class="step-body">
+    In <strong>Command Prompt</strong>, run both commands. Enter password <code>orangepi</code> when prompted. Accept the fingerprint prompt by typing <code>yes</code>.
+    <pre>type %USERPROFILE%\.ssh\id_ed25519.pub | ssh orangepi@192.168.50.1 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+
+type %USERPROFILE%\.ssh\id_ed25519.pub | ssh orangepi@192.168.50.2 "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"</pre>
+    <div class="verify">
+      <strong>Verify — passwordless login</strong>
+      <code>ssh orangepi@192.168.50.1</code> and <code>ssh orangepi@192.168.50.2</code><br>
+      Both should connect without asking for a password. Type <code>exit</code> or press <code>Ctrl+D</code> to disconnect.
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">4</div>
+    <div class="step-title">Configure SSH hosts</div>
+  </div>
+  <div class="step-body">
+    In <strong>Command Prompt</strong>:
+    <pre>notepad %USERPROFILE%\.ssh\config</pre>
+    Add the following and save:
+    <pre><span class="key">Host</span> <span class="val">gcs-pi</span>
+    <span class="key">HostName</span> <span class="val">192.168.50.1</span>
+    <span class="key">User</span> <span class="val">orangepi</span>
+
+<span class="key">Host</span> <span class="val">mast-pi</span>
+    <span class="key">HostName</span> <span class="val">192.168.50.2</span>
+    <span class="key">User</span> <span class="val">orangepi</span></pre>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="step">
+  <div class="step-header">
+    <div class="step-num">5</div>
+    <div class="step-title">Connect with VS Code Remote SSH</div>
+  </div>
+  <div class="step-body">
+    <ol>
+      <li>Open VS Code → Extensions (<code>Ctrl+Shift+X</code>) → search <strong>Remote - SSH</strong> → Install</li>
+      <li>Press <code>F1</code> → type <strong>Remote-SSH: Connect to Host</strong></li>
+      <li>Select <code>gcs-pi</code> — a new VS Code window opens connected to GCS Pi</li>
+      <li>Repeat for <code>mast-pi</code> in a second VS Code window</li>
+      <li>In each window: <strong>File → Open Folder</strong> → navigate to your project directory</li>
+    </ol>
+    <div class="verify">
+      <strong>Verify</strong>
+      Bottom-left corner of each VS Code window shows <code>SSH: gcs-pi</code> and <code>SSH: mast-pi</code> in green.
+    </div>
+  </div>
+</div>
+
+<footer>
+  VS Code Remote SSH · Orange Pi 5 Pro · enP4p65s0 · subnet 192.168.50.0/24
+</footer>
+
+</body>
+</html>
